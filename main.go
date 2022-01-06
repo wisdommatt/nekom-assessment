@@ -16,7 +16,9 @@ import (
 )
 
 type customerOrdersResponse struct {
-	Orders []*orders.OrderResponse `json:"orders"`
+	Status  string                  `json:"status"`
+	Message string                  `json:"message"`
+	Orders  []*orders.OrderResponse `json:"orders"`
 }
 
 var (
@@ -48,7 +50,11 @@ func handleGetCustomerOrders(
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		email := r.URL.Query().Get("email")
 		if _, err := mail.ParseAddress(email); err != nil {
-			http.Error(rw, fmt.Sprintf("invalid email address: '%s'", email), http.StatusBadRequest)
+			rw.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(rw).Encode(customerOrdersResponse{
+				Status:  "error",
+				Message: fmt.Sprintf("invalid email address: '%s'", email),
+			})
 			return
 		}
 		metaData := metadata.New(map[string]string{
@@ -58,7 +64,11 @@ func handleGetCustomerOrders(
 		ctx := metadata.NewOutgoingContext(r.Context(), metaData)
 		customerResponse, err := customerClient.GetCustomerByEmail(ctx, &customer.Email{Email: email})
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusBadRequest)
+			rw.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(rw).Encode(customerOrdersResponse{
+				Status:  "error",
+				Message: err.Error(),
+			})
 			return
 		}
 		if len(customerResponse.Customers) == 0 {
@@ -70,16 +80,16 @@ func handleGetCustomerOrders(
 			Customerid: int32(customer.Customerid),
 		})
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			rw.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(rw).Encode(customerOrdersResponse{
+				Status:  "error",
+				Message: err.Error(),
+			})
 			return
 		}
 		response := customerOrdersResponse{
 			Orders: ordersResponse.Orders,
 		}
-		err = json.NewEncoder(rw).Encode(response)
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		json.NewEncoder(rw).Encode(response)
 	})
 }
