@@ -72,7 +72,11 @@ func handleGetCustomerOrders(
 			return
 		}
 		if len(customerResponse.Customers) == 0 {
-			http.Error(rw, "customer with this email does not exist", http.StatusBadRequest)
+			rw.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(rw).Encode(customerOrdersResponse{
+				Status:  "error",
+				Message: "a customer with this email does not exist",
+			})
 			return
 		}
 		customer := customerResponse.Customers[0]
@@ -88,7 +92,9 @@ func handleGetCustomerOrders(
 			return
 		}
 		response := customerOrdersResponse{
-			Orders: ordersResponse.Orders,
+			Status:  "success",
+			Message: "Orders retrieved successfully",
+			Orders:  ordersResponse.Orders,
 		}
 		json.NewEncoder(rw).Encode(response)
 	})
