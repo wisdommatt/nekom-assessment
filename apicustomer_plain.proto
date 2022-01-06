@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.nekom.backend.api.grpc.customers";
+option java_outer_classname = "CustomerConnector";
+option go_package = "./proto/customer";
+
+
+
+// Exported interface used in the server
+service CustomerConnector {
+
+    // returns a customer by UUID
+    rpc getCustomer (Uuid) returns (CustomerResponse) {
+
+    }
+
+    // returns a customer for given customer Id or external customer Id
+    rpc getCustomerById (CustomerEntityId) returns (CustomerResponse) {
+
+    }
+    // returns list of customers for given email
+    rpc getCustomerByEmail (Email) returns (EmailResponse) {
+
+    }
+    // creates a new customer
+    rpc postCustomer (CustomerEntity) returns (CustomerSaveResponse) {
+
+    }
+    // updates an existing customer
+    rpc putCustomer (CustomerEntity) returns (CustomerSaveResponse) {
+
+    }
+    // deletes an existing customer
+    rpc deleteCustomer (CustomerEntity) returns (CustomerSaveResponse) {
+
+    }
+}
+
+//  the uuid of the database
+message Uuid {
+    string uuid = 1;
+}
+
+//  getByEmail request
+message Email {
+    string email = 1;
+}
+
+//  the customerid query object
+message CustomerEntityId {
+    // param name customerid
+    string customerid = 1;
+    // param name externalid
+    string externalid = 2;
+}
+
+// response object in case of get requests
+message CustomerResponse {
+    // success indicates of the reuquested operation was successfull
+    bool success = 1;
+    // error message gives additional information about the error
+    string errorMessage = 2;
+    // HTTP style error type
+    string errorType = 3;
+    // For successful operations, Customer is returned
+    //  Customer
+    // in: body
+    CustomerEntity customer = 4;
+}
+
+// response object in case of get requests
+message EmailResponse {
+    // success indicates of the reuquested operation was successfull
+    bool success = 1;
+    // error message gives additional information about the error
+    string errorMessage = 2;
+    // HTTP style error type
+    string errorType = 3;
+    // For successful operations, Customer is returned
+    //  Customer
+    // in: body
+    repeated CustomerEntity customers = 4;
+}
+
+// Response object in case of put/post/delete
+message CustomerSaveResponse {
+    // success indicates of the reuquested operation was successfull
+    bool success = 1;
+    // error message gives additional information about the error
+    string errorMessage = 2;
+    // HTTP style error type
+    string errorType = 3;
+    // the uuid of the stored record
+    string uuid = 4;
+    // For successful operations, uuid of customer is returned
+    //  Customer
+    // in: body
+    CustomerEntity customer = 5;
+}
+
+// the customer object itself
+message CustomerEntity {
+    // the db uuid
+    string uuid = 1;
+    // the title of the customer
+    string title = 2;
+    // the given firstname of the customer
+    string firstName = 3;
+    // the surname of the customer
+    string lastName = 4;
+    // the email of the customer
+    string email = 5;
+    // the phonenumer
+    string phone = 6;
+    // the gender (Male=M, Female=F, C=Company)
+    string gender = 7;
+    // date of birth in format YYYYMMDD
+    string birthDate = 8;
+    // company name
+    string company = 9;
+    // the id of the customer in the client system
+    string externalcustomerid = 10;
+    // the UID-number of the customer in the client system
+    string uid = 11;
+    // the list of addresses used by this customer
+    repeated CustomerAddress addresses = 12;
+    // the customerid of the customer in database
+    int64 customerid = 13;
+}
+
+//  the addressobject represents one address
+message CustomerAddress {
+    // the db uuid
+    string uuid = 1;
+    // the given firstname of the customer
+    string firstName = 2;
+    // the surname of the customer
+    string lastName = 3;
+    // the type of the address (B=Billing Address, S=Shipping Address)
+    string addressType = 4;
+    // the street of the address
+    string street = 5;
+    // the housenr of the address
+    string houseNr = 6;
+    // the city of the address
+    string city = 7;
+    // the zipcode of the address
+    string zip = 8;
+    // the country in ISO3 Format (DEU=Germany)
+    string country = 9;
+    // for attention for customer
+    string for_attention = 10;
+    // add on for city
+    string city_addon = 11;
+    // add on for street
+    string street_addon = 12;
+    // company name
+    string company = 13;
+}

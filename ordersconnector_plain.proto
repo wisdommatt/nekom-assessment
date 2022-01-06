@@ -1,0 +1,436 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.nekom.backend.api.grpc.orders";
+option java_outer_classname = "OrdersConnector";
+option go_package = "./proto/orders";
+
+// Exported interface used in the server
+service OrdersConnector {
+    // returns an order order UUID
+    rpc getOrder (OrderId) returns (Response) {
+    }
+    // creates an order
+    rpc createOrder (OrderRequest) returns (CreateResponse) {
+    }
+    // gets orders by statusCode
+    rpc getOrdersByStatus (StatusCode) returns (Response) {
+    }
+    // returns list of orders for given customer Id or external customer Id
+    rpc getOrdersForCustomer (CustomerId) returns (Response) {
+    }
+    // returns an order for given order Number or invoice Number
+    rpc getOrdersForInvoice (InvoiceNumber) returns (Response) {
+    }
+    // returns the documents per order like invoice, returnslip
+    rpc getDocumentsPerOrder (InvoiceNumber) returns (DocumentResponse) {
+    }
+    // returns a specific document per order like invoice, returnslip
+    rpc getSpecificDocumentOfOrder (FileRequest) returns (FileResponse) {
+    }
+    // returns the log of orderimport
+    rpc getOrderLog (Search) returns (OrderLogResponse) {
+    }
+
+    rpc updateOrderStatus (StatusUpdateRequest) returns (Response) {
+
+    }
+    //checks if there are creditnotes for this position and gives the information back
+    rpc getReturnsOfPosition(OrderpositionSearchRequest) returns (OrderpositionReturnsResponse){
+    }
+    rpc getOrdersbyFullTextSearch (Search) returns (Response) {
+
+    }
+
+}
+
+
+message OrderpositionSearchRequest {
+    string uuid = 1;
+}
+
+message OrderpositionReturnsResponse {
+    repeated OrderpositionOneReturnResponse positionreturns=1;
+}
+
+message OrderpositionOneReturnResponse {
+    string uuid = 1;
+    int64 creditdate = 2;
+    int64 creditnumber = 3;
+    float creditquantity = 4;
+    float creditamount = 5;
+}
+
+message StatusUpdateRequest {
+    // the uuid of the order
+    string orderuuid=1;
+    // the new statuscode of the order
+    int64 status=2;
+    // the username of the changing user
+    string username=3;
+}
+
+
+message Response {
+    // success indicates of the reuquested operation was successfull
+    bool success = 1;
+    // error message gives additional information about the error
+    string errorMessage = 2;
+    // HTTP style error type
+    string errorType = 3;
+    // For successful operations, Orders is returned
+    repeated OrderResponse orders = 4;
+}
+
+message CreateResponse {
+    // success indicates of the reuquested operation was successfull
+    bool success = 1;
+    // error message gives additional information about the error
+    string errorMessage = 2;
+    // HTTP style error type
+    string errorType = 3;
+    // For successful operations, Order Uuid is returned
+    string orderUuid = 4;
+    // customer uuid
+    string customerUuid = 5;
+}
+
+// swagger:parameters GetOrdersByInvoice
+message InvoiceNumber {
+    // param name invoicenr
+    int32 invoicenr = 1;
+    // param name ordernr
+    int32 ordernr = 2;
+    // param name channel
+    string channel = 3;
+}
+
+message Search {
+    // param name searchvalue
+    string searchvalue = 1;
+
+}
+message OrderLogResponse {
+    // success indicates of the reuquested operation was successfull
+    bool success = 1;
+    // error message gives additional information about the error
+    string errorMessage = 2;
+    // HTTP style error type
+    string errorType = 3;
+    // For successful operations, Orders is returned
+    repeated logresponse logresponseline = 4;
+}
+
+
+message logresponse {
+    string externalid = 1;
+    string request = 2;
+    string message = 3;
+    int64 aldatum = 4;
+    int64 alzeit = 5;
+}
+
+// swagger:parameters GetOrdersByStatus
+message StatusCode {
+    //required:true
+    // param name status
+    int32 status = 1;
+    // param name offset
+    int32 offset = 2;
+    // param name channel
+    string channel = 3;
+}
+
+// swagger:parameters GetOrderByUuid
+message OrderId {
+    // required:true
+    string uuid = 1;
+    // not used
+    int64 id = 2;
+    // param name channel
+    string channel = 3;
+}
+
+// swagger:parameters GetOrdersByCustomer
+message CustomerId {
+    // param name customerid
+    int32 customerid = 1;
+    // param name externalid
+    string externalid = 2;
+    // param name channel
+    string channel = 3;
+}
+
+message Username {
+    string username = 1;
+}
+
+// OrderRequest
+message OrderRequest {
+    // Type of order, order=Order, refund=Credit
+    string orderType = 1;
+    // the customer of this order
+    Customer customer = 2;
+    // the billingaddress used in this order
+    Address billingAddress = 3;
+    // the shipping address
+    Address shippingAddress = 4;
+    // the type of shipping like POST
+    string shippingType = 5;
+    // the type of payment
+    string paymentType = 6;
+    // the reference number of the psp
+    string paymentReference = 7;
+    // the ordernumber used in the system where order was created,if empty we create an own one
+    int64 ordernr = 8;
+    // extra reference for ordernumber from the calling system
+    string externalOrderNr = 9;
+    // the ordervalue multiplied by 10000
+    int64 orderValueGross = 10;
+    // the orderdate in format YYYYMMDD
+    int64 orderDate = 11;
+    // the ordertime in format HHMMSS
+    int64 orderTime = 12;
+    // the currency, for example EUR
+    string currency = 13;
+    // the amount of the voucher used in this order (amount mulitplied with 10000)
+    int64 voucherAmount = 14;
+    // the orderlines of this order
+    repeated Ordersposition orderposition = 15;
+    // the shippingcosts used in this order (amount mulitplied with 10000)
+    int64 shippingcosts = 16;
+    // the vouchercode of the used voucher
+    string vouchercode = 17;
+    // the minimum amount of the cart where we refund the voucher
+    int64 mincartamount = 18;
+    // a reference to the affilaite network where the order is coming from
+    string affiliatereference = 19;
+    // param name channel
+    string channel = 20;
+    // designation of clientorderstatus
+    string clientorderstatus = 21;
+
+}
+
+message CustomerCreateResponse {
+    // success indicates of the reuquested operation was successfull
+    bool success = 1;
+    // error message gives additional information about the error
+    string errorMessage = 2;
+    // HTTP style error type
+    string errorType = 3;
+    // For successful operations, uuid of customer is returned
+    //  Customer
+    // in: body
+    string uuid = 4;
+    // the customer object
+    Customer customer = 5;
+}
+
+// OrderResponse
+message OrderResponse {
+    // the uuid of the record
+    string uuid = 1;
+    // 0=deleted, 1=aktiv
+    int64 aktiv = 2;
+    // Type of order, AU=Order, GS=Credit, GW=Goodwill Credit
+    string orderType = 3;
+    // the customer of this order
+    Customer customer = 4;
+    //the ordernumber in the system
+    int64 orderNr = 5;
+    // the billingaddress used in this order
+    Address billingAddress = 6;
+    // the shipping address
+    Address shippingAddress = 7;
+    // the type of shipping like POST
+    string shippingType = 8;
+    // the type of payment
+    string paymentType = 9;
+    // the reference number of the psp
+    string paymentReference = 10;
+    // the ordernumber used in the system where order was created
+    string externalOrderNr = 11;
+    // the status of the order
+    int64 orderStatus = 12;
+    // the invoice number, in case the invoice is already created
+    int64 invoiceNr = 13;
+    // the date in format YYYYMMDD
+    int64 invoiceDate = 14;
+    // the ordervalue multiplied by 10000
+    int64 orderValueGross = 15;
+    // the date in format YYYYMMDD
+    int64 shippingDate = 16;
+    // the time in format HHMMSS
+    int64 shippingTime = 17;
+    // the shippingcosts (amount mulitplied with 10000), must be included in ordervalue
+    int64 shippingCosts = 18;
+    // the orderdate in format YYYYMMDD
+    int64 orderDate = 19;
+    //the time the order has been placed in HHMMSS
+    int64 orderTime = 20;
+    // the currency, for example EUR
+    string currency = 21;
+    // the date of billing the order, YYYYMMDD format
+    int64 billingDate = 22;
+    // the creditnumber in case the ordertype is Credit
+    int64 creditNr = 23;
+    // the amount of the voucher used in this order (amount mulitplied with 10000)
+    int64 voucherAmount = 24;
+    // List Ordersposition
+    repeated Ordersposition orderposition = 25;
+    // order origin
+    string channel = 26;
+}
+
+// Orderposition
+message Ordersposition {
+    // the uuid of this position
+    string uuid = 1;
+    // active flag (0=deleted, 1=active)
+    int64 aktiv = 2;
+    // the item object used in this position
+    Item item = 3;
+    // the name of the item used in the shop
+    string itemdescription = 4;
+    // the quantity the customer bought
+    float orderquantity = 5;
+    // the quantity which has been delivered
+    float deliveryquantity = 6;
+    // the quantity which has been canceled
+    float cancelquantity = 7;
+    // the purchaseprice of this item when the order has been done (amount mulitplied with 10000)
+    float purchaseprice = 8;
+    // the price of one piece of item (amount mulitplied with 10000)
+    float sellingprice = 9;
+    // the price of the whole orderposition (amount mulitplied with 10000)
+    float positionvalue = 10;
+    // in case there is a voucher used in this position the voucheramount (already calculated in positionvalue)
+    float voucherprice = 11;
+    // the trackingnumber for track and trace
+    string trackingnr = 12;
+    // the taxrate in percentage
+    float taxrate = 13;
+    // the used vouchercode for this position
+    string vouchercode = 14;
+    // item number used in the client system
+    string extitemnumber = 15;
+}
+
+//  Item
+message Item {
+    // the uuid of this item
+    string uuid = 1;
+    // the itemnumber of this item
+    string itemnumber = 2;
+    // the name of this item used in item masterdata
+    string designation = 3;
+    // the link to the image
+    string imagepath = 4;
+}
+
+message Customer {
+    // the db uuid of the customer
+    string uuid = 1;
+    // the title of the customer
+    string title = 2;
+    // the given firstname of the customer
+    string firstName = 3;
+    // the surname of the customer
+    string lastName = 4;
+    // the email of the customer
+    string email = 5;
+    // the phonenumer
+    string phone = 6;
+    // the gender (Male=M, Female=F, C=Company)
+    string gender = 7;
+    // date of birth in format YYYYMMDD
+    string birthDate = 8;
+    // company name
+    string company = 9;
+    // the id of the customer in the client system
+    string externalcustomerid = 10;
+    // the UID-number of the customer in the client system
+    string uid = 11;
+    // the list of addresses used by this customer
+    repeated Address addresses = 12;
+    // the id of the customer
+    int64 customerid = 13;
+}
+
+//  the addressobject represents one address
+message Address {
+    // the db uuid
+    string uuid = 1;
+    // the given firstname of the customer
+    string firstName = 2;
+    // the surname of the customer
+    string lastName = 3;
+    // the type of the address (B=Billing Address, S=Shipping Address)
+    string addressType = 4;
+    // the street of the address
+    string street = 5;
+    // the housenr of the address
+    string houseNr = 6;
+    // the city of the address
+    string city = 7;
+    // the zipcode of the address
+    string zip = 8;
+    // the country in ISO3 Format (DEU=Germany)
+    string country = 9;
+    // for attention for customer
+    string for_attention = 10;
+    // add on for city
+    string city_addon = 11;
+    // add on for street
+    string street_addon = 12;
+    //company name
+    string company = 13;
+}
+
+message FileRequest {
+    // full path to get the file from
+    string filepath = 1;
+}
+
+message FileResponse {
+    // success indicates of the reuquested operation was successfull
+    bool success = 1;
+    // error message gives additional information about the error
+    string errorMessage = 2;
+    // HTTP style error type
+    string errorType = 3;
+    // file byte stream
+    bytes file = 4;
+}
+
+message Document {
+    //full file path
+    string filename = 1;
+    //type of the file
+    enum DocType {
+        UNKNOWN = 0;
+        INVOICE = 1;
+        RETURNSLIP = 2;
+        DELIVERYNOTE = 3;
+        PICKINGSLIP = 4;
+        INVOICE_REPRINT = 5;
+        OTHER = 6;
+    }
+    //type of the file
+    DocType type = 2;
+}
+
+// list of documents related to an order
+message DocumentResponse {
+    // success indicates of the reuquested operation was successfull
+    bool success = 1;
+    // error message gives additional information about the error
+    string errorMessage = 2;
+    // HTTP style error type
+    string errorType = 3;
+    // order identification
+    string orderuuid = 4;
+    //list of related documents
+    repeated Document documents = 5;
+}
